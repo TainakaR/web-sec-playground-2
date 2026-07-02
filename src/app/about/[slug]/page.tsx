@@ -33,21 +33,7 @@ const Page = async ({ params }: Props) => {
       </div>
 
       <div className="mt-6 rounded-md border border-gray-200 bg-white p-6 shadow-sm">
-        {/*
-          💀 aboutContent をサニタイズせずに dangerouslySetInnerHTML で出力している。
-          攻撃者が /member/about でXSSペイロードを aboutContent に保存すると、
-          このページを訪問した全ユーザのブラウザで任意のJavaScriptが実行される。
-          これが「蓄積型XSS（Stored XSS）」である。
-          反射型XSSと異なり、被害者に不審なURLを踏ませる必要がない。
-        */}
         <div dangerouslySetInnerHTML={{ __html: user.aboutContent }} />
-      </div>
-
-      <div className="mt-6 text-sm text-slate-600">
-        <p className="text-rose-500">
-          ※ このページには、蓄積型クロスサイトスクリプティング（Stored
-          XSS）が成立し得る深刻な脆弱性が含まれています。
-        </p>
       </div>
     </main>
   );
