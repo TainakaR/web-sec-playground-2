@@ -8,7 +8,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChalkboardUser } from "@fortawesome/free-solid-svg-icons";
 
 import { twMerge } from "tailwind-merge";
-import { AUTH } from "@/config/auth";
 
 export const Header: React.FC = () => {
   const { userProfile, logout } = useAuth();
@@ -29,9 +28,7 @@ export const Header: React.FC = () => {
               <FontAwesomeIcon icon={faChalkboardUser} className="mr-1.5" />
               WebSecPlayground
             </NextLink>
-            <span className="ml-1 text-xs font-normal">
-              {AUTH.isSession ? "- Session Auth" : "- JWT Auth"}
-            </span>
+            <span className="ml-1 text-xs font-normal">- Session Auth</span>
           </div>
           {userProfile ? (
             <div className="ml-2 text-sm text-slate-400">

@@ -5,26 +5,17 @@ import { prisma } from "@/libs/prisma";
 
 export const dynamic = "force-dynamic";
 
+// 不要なニュースやショップのリンクを削除し、説明文を修正
 const links = [
-  {
-    href: "/news",
-    label: "ニュース",
-    info: "Cookie超入門、SWR超入門、DB Seeding入門、XSS脆弱性（反射型）",
-  },
-  {
-    href: "/shop",
-    label: "ショップ",
-    info: "Cookie入門、SWR入門、zod入門",
-  },
   {
     href: "/login",
     label: "ログイン",
-    info: "セッションベース認証入門/トークンベース認証入門",
+    info: "セキュアなログイン（セッションベース認証）",
   },
   {
     href: "/signup",
     label: "サインアップ",
-    info: "ServerActions (Custom Invocation) 入門",
+    info: "新規ユーザー登録",
   },
   {
     href: "/member/about",
@@ -42,7 +33,7 @@ const Page = async () => {
 
   return (
     <main>
-      <div className="text-2xl font-bold">Main</div>
+      <div className="text-2xl font-bold">ホーム</div>
       <div className="mt-4 ml-2 gap-y-2">
         {links.map(({ href, label, info }) => (
           <div key={href} className="flex items-center">
@@ -72,7 +63,7 @@ const Page = async () => {
               >
                 {name} のプロフィール
               </NextLink>
-              <div className="text-xs text-rose-400">※ XSS脆弱性（蓄積型）</div>
+              {/* 「※ XSS脆弱性（蓄積型）」という教材特有の記述を削除 */}
             </div>
           ))
         )}

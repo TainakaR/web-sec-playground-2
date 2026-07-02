@@ -13,10 +13,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { twMerge } from "tailwind-merge";
 import NextLink from "next/link";
 import { ApiResponse } from "../_types/ApiResponse";
-import { decodeJwt } from "jose";
 import { mutate } from "swr";
 import { useRouter } from "next/navigation";
-import { AUTH } from "@/config/auth";
 
 const Page: React.FC = () => {
   const c_Email = "email";
@@ -60,8 +58,10 @@ const Page: React.FC = () => {
   }, [isLoginCompleted, router]);
 
   // ルートエラーのクリア用 onChange ハンドラ合成
-  const { onChange: onEmailChange, ...emailRegister } = formMethods.register(c_Email);
-  const { onChange: onPasswordChange, ...passwordRegister } = formMethods.register(c_Password);
+  const { onChange: onEmailChange, ...emailRegister } =
+    formMethods.register(c_Email);
+  const { onChange: onPasswordChange, ...passwordRegister } =
+    formMethods.register(c_Password);
   const clearRootOnChange =
     (originalOnChange: React.ChangeEventHandler<HTMLInputElement>) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,15 +95,7 @@ const Page: React.FC = () => {
         return;
       }
 
-      if (AUTH.isSession) {
-        // ■■ セッションベース認証の処理 ■■
-        setUserProfile(userProfileSchema.parse(body.payload));
-      } else {
-        // ■■ トークンベース認証の処理 ■■
-        const jwt = body.payload as string;
-        localStorage.setItem("jwt", jwt); // JWT をローカルストレージに保存
-        setUserProfile(userProfileSchema.parse(decodeJwt(jwt)));
-      }
+      setUserProfile(userProfileSchema.parse(body.payload));
       mutate("/api/auth", body);
       setIsLoginCompleted(true);
     } catch (e) {
