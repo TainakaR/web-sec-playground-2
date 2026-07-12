@@ -10,7 +10,6 @@ export const revalidate = 0;
 
 export const GET = async (req: NextRequest) => {
   try {
-    // ■■ トークンベース認証の分岐を削除し、セッションベース認証のみに固定 ■■
     const userId = await verifySession();
 
     if (!userId) {
@@ -19,10 +18,9 @@ export const GET = async (req: NextRequest) => {
         payload: null,
         message: "認証情報が無効です。再度ログインしてください。",
       };
-      return NextResponse.json(res); // 失敗時も200を返す設計
+      return NextResponse.json(res);
     }
 
-    // userId から userProfile を取得
     const user = (await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -42,7 +40,6 @@ export const GET = async (req: NextRequest) => {
       return NextResponse.json(res);
     }
 
-    // ユーザ情報をレスポンスする
     const res: ApiResponse<UserProfile> = {
       success: true,
       payload: user,

@@ -7,7 +7,6 @@ import AuthProvider from "@/app/_contexts/AuthContext";
 
 config.autoAddCss = false;
 
-// タイトルなどを提出アプリ用に変更
 export const metadata: Metadata = {
   title: "Secure Auth App",
   description: "セキュアな認証機能を備えたウェブアプリ",

@@ -17,39 +17,32 @@ type UserSeed = {
 const main = async () => {
   console.log("Seeding database...");
 
-  // テスト用のユーザ情報の「種」となる userSeeds を作成
   const userSeeds: UserSeed[] = [
     {
-      name: "高負荷 耐子",
-      password: "password1111",
-      email: "admin01@example.com",
+      name: "管理者 (Admin)",
+      password: "password123",
+      email: "admin@example.com",
       role: Role.ADMIN,
     },
     {
-      name: "不具合 直志",
-      password: "password2222",
-      email: "admin02@example.com",
-      role: Role.ADMIN,
-    },
-    {
-      name: "構文 誤次郎",
-      password: "password1111",
+      name: "山田 太郎",
+      password: "password123",
       email: "user01@example.com",
       role: Role.USER,
-      aboutSlug: "gojiro",
-      aboutContent: "構文誤次郎です。<br>よろしくお願いします。",
+      aboutSlug: "taro-yamada",
+      aboutContent:
+        "初めまして。山田太郎のプロフィールページです。<br>Next.jsを学習中です。",
     },
     {
-      name: "仕様 曖昧子",
-      password: "password2222",
+      name: "佐藤 花子",
+      password: "password123",
       email: "user02@example.com",
       role: Role.USER,
-      aboutSlug: "aimaiko",
-      aboutContent: "仕様曖昧子と申します。仲良くしてください。",
+      aboutSlug: "hanako-sato",
+      aboutContent: "佐藤花子です。よろしくお願いします。",
     },
   ];
 
-  // 各テーブルの全レコードを削除
   await prisma.user.deleteMany();
   await prisma.session.deleteMany();
 
@@ -57,7 +50,6 @@ const main = async () => {
     userSeeds.map((userSeed) => bcrypt.hash(userSeed.password, 10)),
   );
 
-  // ユーザ（user）テーブルにテストデータを挿入
   await prisma.user.createMany({
     data: userSeeds.map((userSeed) => ({
       id: uuid(),

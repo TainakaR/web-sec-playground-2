@@ -2,11 +2,9 @@
 
 import { useAuth } from "@/app/_hooks/useAuth";
 import NextLink from "next/link";
-
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChalkboardUser } from "@fortawesome/free-solid-svg-icons";
-
 import { twMerge } from "tailwind-merge";
 
 export const Header: React.FC = () => {
@@ -26,9 +24,8 @@ export const Header: React.FC = () => {
           <div>
             <NextLink href="/">
               <FontAwesomeIcon icon={faChalkboardUser} className="mr-1.5" />
-              WebSecPlayground
+              SecureApp
             </NextLink>
-            <span className="ml-1 text-xs font-normal">- Session Auth</span>
           </div>
           {userProfile ? (
             <div className="ml-2 text-sm text-slate-400">

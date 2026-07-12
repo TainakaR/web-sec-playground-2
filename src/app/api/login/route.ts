@@ -5,10 +5,8 @@ import type { UserProfile } from "@/app/_types/UserProfile";
 import type { ApiResponse } from "@/app/_types/ApiResponse";
 import { NextResponse, NextRequest } from "next/server";
 import { createSession } from "@/app/api/_helper/createSession";
-// ※ createJwt と AUTH のインポートは不要になったため削除
 import bcrypt from "bcryptjs";
 
-// キャッシュを無効化して毎回最新情報を取得
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const revalidate = 0;
@@ -30,7 +28,6 @@ export const POST = async (req: NextRequest) => {
       where: { email: loginRequest.email },
     });
 
-    // 💡 セキュリティ対策: ユーザが存在しない場合も、パスワード間違い時とエラーメッセージを統一する
     if (!user) {
       const res: ApiResponse<null> = {
         success: false,
@@ -41,11 +38,11 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json(res);
     }
 
-    // パスワードの検証 (bcrypt)
     const isValidPassword = await bcrypt.compare(
       loginRequest.password,
       user.password,
     );
+
     if (!isValidPassword) {
       const res: ApiResponse<null> = {
         success: false,
@@ -57,12 +54,11 @@ export const POST = async (req: NextRequest) => {
     }
 
     const tokenMaxAgeSeconds = 60 * 60 * 3; // 3時間
-
-    // ■■ セッションベース認証の処理のみを残す ■■
     await createSession(user.id, tokenMaxAgeSeconds);
+
     const res: ApiResponse<UserProfile> = {
       success: true,
-      payload: userProfileSchema.parse(user), // 余分なプロパティを削除
+      payload: userProfileSchema.parse(user),
       message: "",
     };
     return NextResponse.json(res);
@@ -72,7 +68,7 @@ export const POST = async (req: NextRequest) => {
     const res: ApiResponse<null> = {
       success: false,
       payload: null,
-      message: "ログインのサーバサイドの処理に失敗しました。",
+      message: "ログイン処理に失敗しました。時間をおいて再度お試しください。",
     };
     return NextResponse.json(res);
   }

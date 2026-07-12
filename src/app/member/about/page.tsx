@@ -23,7 +23,6 @@ const Page: React.FC = () => {
 
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // フォーム処理関連の準備と設定
   const formMethods = useForm<About>({
     mode: "onChange",
     resolver: zodResolver(aboutSchema),
@@ -35,122 +34,100 @@ const Page: React.FC = () => {
     name: c_AboutSlug,
   });
 
-  // ルートエラー（サーバサイドで発生した認証エラー）の表示設定の関数
-  const setRootError = (errorMsg: string) => {
-    formMethods.setError("root", {
-      type: "manual",
-      message: errorMsg,
-    });
-  };
+  const clearRootOnChange =
+    <T extends unknown[]>(onChange: (...event: T) => void) =>
+    (...args: T) => {
+      formMethods.clearErrors("root");
+      onChange(...args);
+    };
 
-  const notPublishedText = "公開されません（有効なパスが未設定です）";
+  const slugRegister = formMethods.register(c_AboutSlug);
+  const onSlugChange = slugRegister.onChange;
+
+  const submitHandler = async (data: About) => {
+    try {
+      const res = await fetch(ep, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result: ApiResponse<About> = await res.json();
+
+      if (!result.success) {
+        formMethods.setError("root", {
+          type: "server",
+          message: result.message || "保存に失敗しました。",
+        });
+      } else {
+        alert("設定を保存しました。");
+      }
+    } catch {
+      formMethods.setError("root", {
+        type: "server",
+        message: "通信エラーが発生しました。",
+      });
+    }
+  };
 
   useEffect(() => {
-    if (isInitialized) return;
-    const fetchAbout = async () => {
-      const res = await fetch(ep, {
-        credentials: "same-origin",
-        cache: "no-store",
-      });
-      const data: ApiResponse<About> = await res.json();
-      console.log("About ページの情報取得結果:", data);
-      if (data.success) {
-        const parsedData = aboutSchema.parse(data.payload);
-        formMethods.reset(parsedData);
-      } else {
-        console.error("About ページの情報取得に失敗しました。", data.message);
+    const init = async () => {
+      try {
+        const res = await fetch(ep, { cache: "no-store" });
+        const result: ApiResponse<About> = await res.json();
+        if (result.success && result.payload) {
+          formMethods.reset(result.payload);
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial data", error);
+      } finally {
+        setIsInitialized(true);
       }
-      setIsInitialized(true);
     };
-    fetchAbout();
-  }, [formMethods, isInitialized]);
-
-  // ルートエラーのクリア用 onChange ハンドラ合成
-  const { onChange: onAboutSlugChange, ...aboutSlugRegister } =
-    formMethods.register(c_AboutSlug);
-
-  // フォームの送信処理
-  const onSubmit = async (formValues: About) => {
-    const res = await fetch(ep, {
-      method: "POST",
-      credentials: "same-origin",
-      cache: "no-store",
-      body: JSON.stringify(formValues),
-    });
-
-    const body: ApiResponse<About> = await res.json();
-
-    if (!body.success) {
-      setRootError(body.message);
-      return;
-    }
-
-    formMethods.reset(body.payload);
-  };
+    init();
+  }, [formMethods]);
 
   if (!isInitialized) {
     return (
-      <main>
-        <div className="text-2xl font-bold">
-          <FontAwesomeIcon icon={faIdCard} className="mr-1.5" />
-          About（編集）
-        </div>
-        <div className="mt-4 flex items-center gap-x-2">
-          <FontAwesomeIcon
-            icon={faSpinner}
-            className="animate-spin text-gray-500"
-          />
-          <div>Loading... </div>
-        </div>
-      </main>
+      <div className="flex items-center gap-x-2 p-4">
+        <FontAwesomeIcon icon={faSpinner} spin />
+        <div>読み込み中...</div>
+      </div>
     );
   }
 
   return (
-    <main>
-      <div className="text-2xl font-bold">
-        <FontAwesomeIcon icon={faIdCard} className="mr-1.5" />
-        About（編集）
+    <main className="mx-auto max-w-xl p-4">
+      <div className="mb-6 flex items-center gap-x-2 text-2xl font-bold">
+        <FontAwesomeIcon icon={faIdCard} />
+        <h1>プロフィール編集</h1>
       </div>
 
       <form
-        noValidate
-        onSubmit={formMethods.handleSubmit(onSubmit)}
-        className="mt-4 mb-4 flex flex-col gap-y-2"
+        onSubmit={formMethods.handleSubmit(submitHandler)}
+        className="flex flex-col gap-y-5"
       >
         <div>
-          <label htmlFor={c_AboutSlug} className="mb-1 block">
-            <div className="flex items-center gap-x-2">
-              <div className="font-bold">公開URL</div>
-              <div className="text-sm text-gray-500">
-                {watchedSlug && !fieldErrors.aboutSlug?.message ? (
-                  <NextLink
-                    href={`/about/${watchedSlug}`}
-                    target="_blank"
-                    className="text-blue-500 hover:underline"
-                  >
-                    /about/{watchedSlug}
-                  </NextLink>
-                ) : (
-                  notPublishedText
-                )}
-              </div>
-            </div>
+          <label htmlFor={c_AboutSlug} className="mb-1 block font-bold">
+            公開パス (Slug)
           </label>
           <TextInputField
-            {...aboutSlugRegister}
-            onChange={(e) => {
-              onAboutSlugChange(e);
-              formMethods.clearErrors("root");
-            }}
+            {...slugRegister}
+            onChange={clearRootOnChange(onSlugChange)}
             id={c_AboutSlug}
-            placeholder="4〜16文字の英小文字・数字・ハイフンが使用できます。"
+            placeholder="my-profile-url"
             type="text"
             disabled={formMethods.formState.isSubmitting}
             error={!!fieldErrors.aboutSlug}
             autoComplete="off"
           />
-
+          {watchedSlug && (
+            <div className="mt-1 text-xs text-gray-500">
+              公開URL:{" "}
+              <span className="rounded bg-gray-100 px-1 py-0.5 font-mono">
+                /about/{watchedSlug}
+              </span>
+            </div>
+          )}
           <ErrorMsgField msg={fieldErrors.aboutSlug?.message} />
           <ErrorMsgField msg={fieldErrors.root?.message} />
         </div>
@@ -161,13 +138,16 @@ const Page: React.FC = () => {
           </label>
           <textarea
             {...formMethods.register(c_AboutContent)}
-            id="content"
+            id={c_AboutContent}
             className={twMerge(
               "w-full rounded-md border border-gray-300 px-3 py-2",
               "focus:ring-2 focus:ring-slate-700 focus:outline-none",
+              fieldErrors.aboutContent
+                ? "border-red-500 focus:ring-red-500"
+                : "",
             )}
             rows={6}
-            placeholder="本文を入力してください。"
+            placeholder="本文を入力してください。HTMLタグ(b, i, font, br)が使用できます。"
             disabled={formMethods.formState.isSubmitting}
           />
           <ErrorMsgField msg={fieldErrors.aboutContent?.message} />
@@ -176,7 +156,7 @@ const Page: React.FC = () => {
         <Button
           variant="indigo"
           width="stretch"
-          className={twMerge("tracking-widest")}
+          className="tracking-widest"
           isBusy={formMethods.formState.isSubmitting}
           disabled={
             !formMethods.formState.isValid || formMethods.formState.isSubmitting
@@ -186,9 +166,9 @@ const Page: React.FC = () => {
         </Button>
       </form>
 
-      <div className="my-4 flex flex-col gap-y-1">
+      <div className="my-6 flex flex-col gap-y-1">
         <div className="text-lg font-bold text-indigo-400">Preview</div>
-        <div className="rounded-md bg-indigo-50 p-4">
+        <div className="rounded-md bg-indigo-50 p-4 shadow-inner">
           <AboutView about={formMethods.getValues()} />
         </div>
       </div>

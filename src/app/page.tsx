@@ -5,7 +5,6 @@ import { prisma } from "@/libs/prisma";
 
 export const dynamic = "force-dynamic";
 
-// 不要なニュースやショップのリンクを削除し、説明文を修正
 const links = [
   {
     href: "/login",
@@ -36,9 +35,12 @@ const Page = async () => {
       <div className="text-2xl font-bold">ホーム</div>
       <div className="mt-4 ml-2 gap-y-2">
         {links.map(({ href, label, info }) => (
-          <div key={href} className="flex items-center">
+          <div key={href} className="mb-3 flex items-center">
             <FontAwesomeIcon icon={faCode} className="mr-1.5" />
-            <NextLink href={href} className="mr-2 hover:underline">
+            <NextLink
+              href={href}
+              className="mr-2 text-blue-600 hover:underline"
+            >
               {label}
             </NextLink>
             <div className="text-xs text-slate-600">※ {info}</div>
@@ -46,8 +48,8 @@ const Page = async () => {
         ))}
       </div>
 
-      <div className="mt-6 text-lg font-bold">公開プロフィール</div>
-      <div className="mt-2 ml-2 gap-y-2">
+      <div className="mt-8 text-lg font-bold">公開プロフィール</div>
+      <div className="mt-3 ml-2 gap-y-2">
         {publicProfiles.length === 0 ? (
           <div className="text-sm text-slate-400">
             公開プロフィールはまだありません。ログインして /member/about
@@ -55,15 +57,17 @@ const Page = async () => {
           </div>
         ) : (
           publicProfiles.map(({ name, aboutSlug }) => (
-            <div key={aboutSlug} className="flex items-center">
-              <FontAwesomeIcon icon={faIdCard} className="mr-1.5" />
+            <div key={aboutSlug} className="mb-2 flex items-center">
+              <FontAwesomeIcon
+                icon={faIdCard}
+                className="mr-1.5 text-gray-700"
+              />
               <NextLink
                 href={`/about/${aboutSlug}`}
-                className="mr-2 hover:underline"
+                className="text-blue-600 hover:underline"
               >
-                {name} のプロフィール
+                {name} さんのプロフィール
               </NextLink>
-              {/* 「※ XSS脆弱性（蓄積型）」という教材特有の記述を削除 */}
             </div>
           ))
         )}

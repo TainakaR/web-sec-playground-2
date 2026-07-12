@@ -10,22 +10,21 @@ interface Props {
   children: React.ReactNode;
 }
 
-const Layout: React.FC<Props> = (props) => {
-  const { children } = props;
+const Layout: React.FC<Props> = ({ children }) => {
   const { userProfile } = useAuth();
 
-  if (!userProfile)
+  if (!userProfile) {
     return (
-      <main>
-        <div className="text-2xl font-bold">
+      <main className="mx-auto mt-10 max-w-md rounded-md border border-red-200 bg-red-50 p-4 text-center">
+        <div className="mb-4 text-2xl font-bold text-red-600">
           <FontAwesomeIcon icon={faTriangleExclamation} className="mr-1.5" />
           ログインが必要なコンテンツ
         </div>
-        <div className="mt-4">
-          このコンテンツを利用するためには
+        <div className="text-sm text-gray-600">
+          このコンテンツを利用するためには、
           <NextLink
-            href={`/login`}
-            className="px-1 text-blue-500 hover:underline"
+            href="/login"
+            className="mx-1 font-bold text-blue-500 hover:underline"
           >
             ログイン
           </NextLink>
@@ -33,8 +32,8 @@ const Layout: React.FC<Props> = (props) => {
         </div>
       </main>
     );
+  }
 
-  // 認可がない場合は何も表示しない
   return <>{children}</>;
 };
 

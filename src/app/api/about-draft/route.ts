@@ -5,28 +5,22 @@ import type { ApiResponse } from "@/app/_types/ApiResponse";
 import { NextResponse, NextRequest } from "next/server";
 import { verifySession } from "@/app/api/_helper/verifySession";
 
-// キャッシュを無効化して常に最新情報を取得
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const revalidate = 0;
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  return await verifySession();
-};
-
 export const GET = async (req: NextRequest) => {
   try {
-    const userId = await getUserId(req);
+    const userId = await verifySession();
     if (!userId) {
       const res: ApiResponse<null> = {
         success: false,
         payload: null,
         message: "認証情報が無効です。再度ログインしてください。",
       };
-      return NextResponse.json(res); // 失敗時も200を返す設計
+      return NextResponse.json(res);
     }
 
-    // userId から userProfile を取得
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -45,7 +39,6 @@ export const GET = async (req: NextRequest) => {
       return NextResponse.json(res);
     }
 
-    // About情報をレスポンスする
     const res: ApiResponse<About> = {
       success: true,
       payload: {
@@ -62,7 +55,7 @@ export const GET = async (req: NextRequest) => {
     const res: ApiResponse<null> = {
       success: false,
       payload: null,
-      message: "About取得に関するバックエンド処理に失敗しました。",
+      message: "バックエンド処理に失敗しました。",
     };
     return NextResponse.json(res);
   }
@@ -70,17 +63,16 @@ export const GET = async (req: NextRequest) => {
 
 export const POST = async (req: NextRequest) => {
   try {
-    const userId = await getUserId(req);
+    const userId = await verifySession();
     if (!userId) {
       const res: ApiResponse<null> = {
         success: false,
         payload: null,
         message: "認証情報が無効です。再度ログインしてください。",
       };
-      return NextResponse.json(res); // 失敗時も200を返す設計
+      return NextResponse.json(res);
     }
 
-    // リクエストボディを取得
     const result = aboutSchema.safeParse(await req.json());
     if (!result.success) {
       const res: ApiResponse<null> = {
@@ -92,13 +84,11 @@ export const POST = async (req: NextRequest) => {
     }
     const about = result.data;
 
-    // slug の重複チェック
     if (about.aboutSlug) {
-      // id が about.id 以外で、slug が同じものが存在するかチェック
       const existingUser = await prisma.user.findFirst({
         where: {
           aboutSlug: about.aboutSlug,
-          id: { not: userId }, // 現在のユーザを除外
+          id: { not: userId },
         },
       });
       if (existingUser) {
@@ -111,7 +101,6 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    // 書き込む
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -125,7 +114,6 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    // About情報をレスポンスする
     const res: ApiResponse<About> = {
       success: true,
       payload: {
@@ -142,7 +130,7 @@ export const POST = async (req: NextRequest) => {
     const res: ApiResponse<null> = {
       success: false,
       payload: null,
-      message: "About設定に関するバックエンド処理に失敗しました。",
+      message: "設定の保存に失敗しました。",
     };
     return NextResponse.json(res);
   }
